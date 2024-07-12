@@ -1,48 +1,38 @@
-import type { MetaFunction } from "@remix-run/node";
+import { json, type MetaFunction } from "@remix-run/node";
+import db from '../database.server';
+import { Link, useLoaderData } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Simple Budget (dot) com" },
+    { name: "description", content: "Welcome to a simple budgeting tool of your dreams." },
   ];
 };
 
-export default function Index() {
+export async function loader() {
+  const transactions = await db.transaction.findMany();
+  return json(transactions);
+}
+
+const HomePage = () => {
+  const transactions = useLoaderData<typeof loader>();
+
   return (
-    <div className="font-sans p-4">
-      <h1 className="text-3xl">Welcome to Remix</h1>
-      <ul className="list-disc mt-4 pl-6 space-y-2">
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/start/quickstart"
-            rel="noreferrer"
-          >
-            5m Quick Start
-          </a>
-        </li>
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/start/tutorial"
-            rel="noreferrer"
-          >
-            30m Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/docs"
-            rel="noreferrer"
-          >
-            Remix Docs
-          </a>
-        </li>
+    <div className="py-5 container mx-auto bg-background-light text-text-dark dark:bg-background dark:text-text">
+      <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+      <Link to="/transactions/import" className=" text-text-dark dark:text-text ml-2 underline">Import Transactions</Link>
+
+      <ul className="mt-4">
+        {transactions.map(transaction => (
+          <li key={transaction.id} className="border p-2 mb-2 bg-card text-text dark:bg-card-light dark:text-text-dark border-border dark:border-border-light">
+            <p>Date: {transaction.date}</p>
+            <p>Description: {transaction.description}</p>
+            <p>Amount: ${transaction.amount.toFixed(2)}</p>
+          </li>
+        ))}
       </ul>
     </div>
   );
-}
+};
+
+export default HomePage;
